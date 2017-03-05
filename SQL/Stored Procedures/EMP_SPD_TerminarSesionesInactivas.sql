@@ -48,6 +48,20 @@ BEGIN
   SET @HOY = GETDATE()
   SET @master_dbid = DB_ID('master')
 
+  -- Elimina las sesiones de IntelisisET que superen 
+  -- el tiempo de inactividad permitido.
+  DELETE et
+  FROM 
+    master.dbo.IntelisisET et
+  JOIN Usuario u ON u.Usuario = et.Usuario
+  -- CALC
+  CROSS APPLY(  
+              SELECT
+                TiempoInactivo = DATEDIFF( minute, et.UltimaActualizacion, @HOY )
+              ) calc
+  WHERE 
+    calc.TiempoInactivo > u.EMP_MinutosMaximosDeInactividad
+
   -- Elimina todas las sesiones de IntelisisET que no tengan
   -- un acceso correspondiente.
   DELETE et
