@@ -90,7 +90,7 @@ BEGIN
               OUTER APPLY sys.dm_exec_query_plan(cp.plan_handle) AS qp
               WHERE
               qp.dbid = sys_procs.dbid
-              AND dbo.RegExIsMatch('\/\*\s' 
+              AND dbo.RegExIsMatch('^\/\*\s' 
                                   + LTRIM(RTRIM(u.Usuario))
                                   + '\s.*\*\/'
                                   , sql_text.TEXT
