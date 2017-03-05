@@ -60,20 +60,22 @@ AS BEGIN
 					*
 				FROM
 					IntelisisET
-				WHERE Usuario = @Usuario
-							AND Estacion BETWEEN @Desde AND @Hasta
+				WHERE 
+          Usuario = @Usuario
+				AND Estacion BETWEEN @Desde AND @Hasta
 			)
 			BEGIN
-				DELETE IntelisisET
+				DELETE
+          IntelisisET
 				WHERE
 					Usuario = @Usuario
 					AND Estacion BETWEEN @Desde AND @Hasta
 			END
+
 		END;
 
 		SELECT
 			@Estacion = NULL;
-
 
 		SELECT
 			@Estacion = (
@@ -83,8 +85,8 @@ AS BEGIN
 				              IntelisisET
 			              WHERE
                       Estacion BETWEEN @Desde AND @Hasta
-
 		              );
+
 		IF @Estacion IS NULL
 		BEGIN
 			SELECT
@@ -98,8 +100,9 @@ AS BEGIN
 					@Estacion = NULL,
 					@crEstacion = NULL,
 					@ultEstacion = @Desde - 1;
-				DECLARE crIntelisisET CURSOR LOCAL
-				FOR SELECT
+
+				DECLARE crIntelisisET CURSOR LOCAL 
+        FOR SELECT
 							Estacion,
 							UltimaActualizacion
 						FROM
@@ -107,14 +110,16 @@ AS BEGIN
 						WHERE Estacion BETWEEN @Desde AND @Hasta
 						ORDER BY
 							Estacion;
+
 				OPEN crIntelisisET;
+
 				FETCH NEXT FROM crIntelisisET INTO
 					@crEstacion,
 					@UltimaActualizacion;
 
 
 				WHILE @@FETCH_STATUS <> -1
-							AND @Estacion IS NULL
+				AND @Estacion IS NULL
 				BEGIN
 					IF @@FETCH_STATUS <> -2
 					BEGIN
@@ -128,22 +133,27 @@ AS BEGIN
 							IF @TimeOut > 0
 									AND @UltimaActualizacion < @Vencido
 							BEGIN
-								DELETE IntelisisET
+								DELETE
+                  IntelisisET
 								WHERE
 									Estacion = @crEstacion;
 								SELECT
 									@Estacion = @crEstacion;
 							END;
 						END;
+
 						SELECT
 							@ultEstacion = @crEstacion;
 					END;
+
 					FETCH NEXT FROM crIntelisisET INTO
 						@crEstacion,
 						@UltimaActualizacion;
 				END;
+
 				CLOSE crIntelisisET;
 				DEALLOCATE crIntelisisET;
+
 			END;
 			ELSE
 			BEGIN
@@ -154,6 +164,7 @@ AS BEGIN
 				END;
 			END;
 		END;
+
 		IF @Estacion IS NOT NULL
 		BEGIN
 			IF NOT EXISTS
@@ -201,16 +212,18 @@ AS BEGIN
 	END;
 	ELSE
 	BEGIN
-		SELECT
+	
+  	SELECT
 			@EstacionFirma = EstacionFirma
 		FROM
 			IntelisisET
-		WHERE Estacion = @Estacion;
-
+		WHERE
+      Estacion = @Estacion;
 
 		IF @Accion = 'UPDATE'
 		BEGIN
-			UPDATE IntelisisET WITH(ROWLOCK)
+			UPDATE
+        IntelisisET WITH(ROWLOCK)
 			SET
 				UltimaActualizacion = @Ahora
 			WHERE
@@ -240,6 +253,7 @@ AS BEGIN
 			END;
 		END;
 	END;
+
 	SELECT
 		'Estacion' = @Estacion,
 		'EstacionFirma' = @EstacionFirma,
