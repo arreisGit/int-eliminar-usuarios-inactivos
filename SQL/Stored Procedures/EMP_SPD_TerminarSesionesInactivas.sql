@@ -120,7 +120,7 @@ BEGIN
   WHILE @@fetch_status = 0
   BEGIN
 
-    DELETE IntelisisET 
+    DELETE master.dbo.IntelisisET 
     WHERE Empresa = @r_Empresa
       AND Sucursal = @r_Sucursal
       AND Usuario = @r_Usuario
