@@ -39,15 +39,36 @@ BEGIN
     @HOY DATETIME,
     @r_acceso_id INT,
     @r_spid INT,
+    @r_Empresa VARCHAR(5),
+    @r_Sucursal INT,
+    @r_Usuario CHAR(10),
     @query NVARCHAR(500)
 
   SET @HOY = GETDATE()
-  
-  DECLARE cr_SesionesInactivas CURSOR LOCAL FAST_FORWARD 
+
+  -- Elimina todas las sesiones de IntelisisET que no tengan
+  -- un acceso correspondiente.
+  DELETE et
+  FROM
+    master.dbo.IntelisisET et
+  LEFT JOIN Acceso ON Acceso.Empresa = et.Empresa
+                  AND Acceso.Sucursal = et.Sucursal
+                  AND Acceso.Usuario = et.Usuario
+                  AND Acceso.FechaRegistro IS NOT NULL
+                  AND Acceso.FechaSalida IS NULL
+  WHERE 
+    Acceso.ID IS NULL
+
+  -- Elimina las sesiones de los usuarios que superen
+  -- los minutos maximos permitidos de inactividad.
+  DECLARE cr_SesionesInactivas CURSOR LOCAL FAST_FORWARD
   FOR
   SELECT DISTINCT
     acceso.ID,
-    acceso.SPID
+    acceso.SPID,
+    acceso.Empresa,
+    acceso.Sucursal,
+    acceso.Usuario
   FROM 
     Usuario u
   JOIN Acceso ON  Acceso.Usuario = u.Usuario
@@ -91,11 +112,16 @@ BEGIN
   OPEN cr_SesionesInactivas
 
   FETCH NEXT FROM cr_SesionesInactivas
-  INTO @r_acceso_id, @r_spid
+  INTO @r_acceso_id, @r_spid, @r_Empresa,@r_Sucursal, @r_Usuario
   
   WHILE @@fetch_status = 0
   BEGIN
-    
+
+    DELETE IntelisisET 
+    WHERE Empresa = @r_Empresa
+      AND Sucursal = @r_Sucursal
+      AND Usuario = @r_Usuario
+     
     SET @query =  
 "BEGIN TRY 
   KILL " + CAST(@r_spid AS VARCHAR(5))+ "
@@ -118,7 +144,7 @@ END CATCH"
     WHERE ID = @r_acceso_id
       
     FETCH NEXT FROM cr_SesionesInactivas
-    INTO @r_acceso_id, @r_spid
+    INTO @r_acceso_id, @r_spid, @r_Empresa,@r_Sucursal, @r_Usuario
 
   END  
   
