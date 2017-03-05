@@ -60,7 +60,8 @@ BEGIN
                 TiempoInactivo = DATEDIFF( minute, et.UltimaActualizacion, @HOY )
               ) calc
   WHERE 
-    calc.TiempoInactivo > u.EMP_MinutosMaximosDeInactividad
+    u.EMP_MinutosMaximosDeInactividad IS NOT NULL
+  AND calc.TiempoInactivo > u.EMP_MinutosMaximosDeInactividad
 
   -- Elimina todas las sesiones de IntelisisET que no tengan
   -- un acceso correspondiente.
