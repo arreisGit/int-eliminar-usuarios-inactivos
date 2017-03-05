@@ -37,6 +37,7 @@ AS
 BEGIN 
   DECLARE
     @HOY DATETIME,
+    @master_dbid INT,
     @r_acceso_id INT,
     @r_spid INT,
     @r_Empresa VARCHAR(5),
@@ -45,6 +46,7 @@ BEGIN
     @query NVARCHAR(500)
 
   SET @HOY = GETDATE()
+  SET @master_dbid = DB_ID('master')
 
   -- Elimina todas las sesiones de IntelisisET que no tengan
   -- un acceso correspondiente.
@@ -89,7 +91,8 @@ BEGIN
               LEFT JOIN sys.dm_exec_cached_plans cp ON cp.plan_handle = st.plan_handle
               OUTER APPLY sys.dm_exec_query_plan(cp.plan_handle) AS qp
               WHERE
-              qp.dbid = sys_procs.dbid
+                qp.dbid = sys_procs.dbid
+              AND qp.dbid <> @master_dbid
               AND dbo.RegExIsMatch('^\/\*\s' 
                                   + LTRIM(RTRIM(u.Usuario))
                                   + '\s.*\*\/'
